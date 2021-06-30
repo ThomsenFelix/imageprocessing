@@ -12,7 +12,7 @@ import imageio
 import numpy as np
 
 # functions
-import color, geometry
+import color, geometry, convolutional
 
 TITLE = "UNS - Image processing"
 SIZE = (600, 400)
@@ -117,7 +117,8 @@ class Main():
        self.filtermenu = tk.Menu(self.menubar,tearoff=0)
        self.add_functions(color)
        self.add_functions(geometry)
-
+       self.add_functions(convolutional)
+       
        self.menubar.add_cascade(label='Filters',menu=self.filtermenu)
        
        helpmenu = tk.Menu(self.menubar,tearoff=0)
