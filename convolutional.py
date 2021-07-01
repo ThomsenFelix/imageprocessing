@@ -71,7 +71,7 @@ def normalize_filter(kernel):
         return kernel/kernel.sum()
 
 class BasicFilters(filters.im_user_filter):
-    name = 'Basic filters...'
+    name = 'Basic filters'
     
     def __init__(self, image, parent):
         super().__init__(image, parent)
@@ -79,7 +79,7 @@ class BasicFilters(filters.im_user_filter):
     def _create_frame(self):
         self.filters = ['Box', 'Circle', 'Gaussian', 'Gaussian high pass', 'Difference of Gaussians']
         self.ksizes = ['3x3', '5x5', '7x7', '11x11', '15x15', '25x25']
-        self.tools.config(text="Change Filter")        
+        self.tools.config(text="Select filter")        
         self.cb_item = tk.StringVar()
         self.cb_item.trace_variable("w", self._adjust)
         self.makeCombobox(title="Filter", values=self.filters, var=self.cb_item)
@@ -100,6 +100,30 @@ class BasicFilters(filters.im_user_filter):
         img_filt = np.stack([convolve2d(self.image[:,:,ch], kernel, 'same', 'symm') 
                              for ch in range(self.image.ndim)], axis=2)
         return img_filt if not np.any(kernel < 0) else img_filt + 0.5
+
+class ContrastEnhancement(filters.im_user_filter):
+    name = 'Contrast enhancement'
+    
+    def _create_frame(self):
+        self.ksizes = ['3x3', '5x5', '7x7', '11x11', '15x15', '25x25']
+        self.tools.config(text="Select level of enhancement")
+        self.scale = tk.DoubleVar()
+        self.scale.trace_variable("w",self._adjust)
+        self.makeSlider(title="Contrast enhancement", from_=0.0, to=5.0, 
+                        resolution=0.05, variable=self.scale)
+        self.cb_item2 = tk.StringVar()
+        self.cb_item2.trace_variable("w", self._adjust)
+        self.makeCombobox(title="Kernel size", values=self.ksizes, var=self.cb_item2)
+    
+    def _reset(self):
+        self.scale.set(0)
+    
+    def do(self):
+        ksize = int(self.cb_item2.get().split('x')[0])
+        kernel = high_pass(gauss(ksize))
+        img_hp = np.stack([convolve2d(self.image[:,:,ch], kernel, 'same', 'symm')
+                             for ch in range(self.image.ndim)], axis=2)
+        return np.clip(self.image + self.scale.get()*img_hp, 0, 1)
         
         
-functions = [BasicFilters]       
+functions = [BasicFilters, ContrastEnhancement]       
